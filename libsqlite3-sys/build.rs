@@ -115,22 +115,14 @@ mod build_bundled {
             .flag("-DSQLITE_CORE")
             .flag("-DSQLITE_DEFAULT_FOREIGN_KEYS=1")
             .flag("-DSQLITE_ENABLE_API_ARMOR")
-            .flag("-DSQLITE_ENABLE_COLUMN_METADATA")
-            .flag("-DSQLITE_ENABLE_DBSTAT_VTAB")
-            .flag("-DSQLITE_ENABLE_FTS3")
-            .flag("-DSQLITE_ENABLE_FTS3_PARENTHESIS")
-            .flag("-DSQLITE_ENABLE_FTS5")
-            .flag("-DSQLITE_ENABLE_JSON1")
-            .flag("-DSQLITE_ENABLE_LOAD_EXTENSION=1")
-            .flag("-DSQLITE_ENABLE_MEMORY_MANAGEMENT")
-            .flag("-DSQLITE_ENABLE_RTREE")
-            .flag("-DSQLITE_ENABLE_STAT2")
-            .flag("-DSQLITE_ENABLE_STAT4")
-            .flag("-DSQLITE_SOUNDEX")
             .flag("-DSQLITE_THREADSAFE=1")
-            .flag("-DSQLITE_USE_URI")
-            .flag("-DHAVE_USLEEP=1")
             .flag("-D_POSIX_THREAD_SAFE_FUNCTIONS") // cross compile with MinGW
+            .flag("-DSQLITE_DEFAULT_MEMSTATUS=0")
+            .flag("-DSQLITE_MAX_EXPR_DEPTH=0")
+            .flag("-DSQLITE_OMIT_DECLTYPE")
+            .flag("-DSQLITE_OMIT_DEPRECATED")
+            .flag("-DSQLITE_OMIT_PROGRESS_CALLBACK")
+            .flag("-DSQLITE_LIKE_DOESNT_MATCH_BLOBS")
             .warnings(false);
 
         if cfg!(feature = "bundled-sqlcipher") {
@@ -234,7 +226,7 @@ mod build_bundled {
             if vs_has_nan {
                 cfg.flag("-DHAVE_ISNAN");
             }
-        } else {
+        } else if env::var("TARGET") != Ok("wasm32-unknown-unknown".to_string()) {
             cfg.flag("-DHAVE_ISNAN");
         }
         if !win_target() {
@@ -248,6 +240,37 @@ mod build_bundled {
             if cfg!(feature = "wasm32-wasi-vfs") {
                 cfg.file("sqlite3/wasm32-wasi-vfs.c");
             }
+        }
+        if env::var("TARGET") == Ok("wasm32-unknown-unknown".to_string()) {
+            // Apple clang doesn't support wasm32, so use Homebrew clang by default.
+            if env::var("HOST") == Ok("x86_64-apple-darwin".to_string()) {
+                if env::var("CC").is_err() {
+                    std::env::set_var("CC", "/usr/local/opt/llvm/bin/clang");
+                }
+                if env::var("AR").is_err() {
+                    std::env::set_var("AR", "/usr/local/opt/llvm/bin/llvm-ar");
+                }
+            } else if env::var("HOST") == Ok("aarch64-apple-darwin".to_string()) {
+                if env::var("CC").is_err() {
+                    std::env::set_var("CC", "/opt/homebrew/opt/llvm/bin/clang");
+                }
+                if env::var("AR").is_err() {
+                    std::env::set_var("AR", "/opt/homebrew/opt/llvm/bin/llvm-ar");
+                }
+            }
+
+            cfg.flag("-DSQLITE_OS_OTHER")
+                .flag("-DSQLITE_TEMP_STORE=3")
+                // https://github.com/rust-lang/rust/issues/74393
+                .flag("-DLONGDOUBLE_TYPE=double")
+                .flag("-DSQLITE_OMIT_LOCALTIME");
+            cfg.include("sqlite3/wasm32-unknown-unknown/include");
+            cfg.file("sqlite3/wasm32-unknown-unknown/libc/stdlib/qsort.c");
+            cfg.file("sqlite3/wasm32-unknown-unknown/libc/string/strcmp.c");
+            cfg.file("sqlite3/wasm32-unknown-unknown/libc/string/strcspn.c");
+            cfg.file("sqlite3/wasm32-unknown-unknown/libc/string/strlen.c");
+            cfg.file("sqlite3/wasm32-unknown-unknown/libc/string/strncmp.c");
+            cfg.file("sqlite3/wasm32-unknown-unknown/libc/string/strrchr.c");
         }
         if cfg!(feature = "unlock_notify") {
             cfg.flag("-DSQLITE_ENABLE_UNLOCK_NOTIFY");
