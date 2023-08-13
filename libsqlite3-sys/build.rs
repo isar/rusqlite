@@ -116,6 +116,7 @@ mod build_bundled {
             .flag("-DSQLITE_DEFAULT_FOREIGN_KEYS=1")
             .flag("-DSQLITE_ENABLE_API_ARMOR")
             .flag("-DSQLITE_THREADSAFE=1")
+            .flag("-DSQLITE_USE_URI")
             .flag("-D_POSIX_THREAD_SAFE_FUNCTIONS") // cross compile with MinGW
             .flag("-DSQLITE_DEFAULT_MEMSTATUS=0")
             .flag("-DSQLITE_MAX_EXPR_DEPTH=0")
