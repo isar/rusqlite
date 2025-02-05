@@ -282,6 +282,7 @@ mod build_bundled {
             cfg.flag("-DSQLITE_OS_OTHER")
                 .flag("-DSQLITE_TEMP_STORE=3")
                 .flag("-DSQLITE_OMIT_LOCALTIME")
+                .flag("-DLONGDOUBLE_TYPE=double")
                 .flag("-Wno-incompatible-library-redeclaration");
 
             let supported_features = [
