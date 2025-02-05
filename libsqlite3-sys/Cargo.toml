@@ -44,7 +44,6 @@ winsqlite3 = []
 openssl-sys = { version = "0.9", optional = true }
 
 [target.wasm32-unknown-unknown.dependencies]
-compiler-rt-builtins = "0.1"
 wasm32-unknown-unknown-openbsd-libc = "0.2"
 
 [build-dependencies]

@@ -262,6 +262,8 @@ mod build_bundled {
 
             cfg.flag("-DSQLITE_OS_OTHER")
                 .flag("-DSQLITE_TEMP_STORE=3")
+                // https://github.com/rust-lang/rust/issues/74393
+                .flag("-DLONGDOUBLE_TYPE=double")
                 .flag("-DSQLITE_OMIT_LOCALTIME")
                 .flag("-Wno-incompatible-library-redeclaration");
 
@@ -289,8 +291,6 @@ mod build_bundled {
             cfg.include(
                 std::env::var_os("DEP_WASM32_UNKNOWN_UNKNOWN_OPENBSD_LIBC_INCLUDE").unwrap(),
             );
-
-            println!("cargo:rustc-link-lib=compiler-rt-builtins");
             println!("cargo:rustc-link-lib=wasm32-unknown-unknown-openbsd-libc");
         }
         if cfg!(feature = "unlock_notify") {
